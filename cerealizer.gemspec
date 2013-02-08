@@ -18,4 +18,6 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_development_dependency 'rspec', '>= 2.9.0'
+  gem.add_development_dependency 'guard-rspec'
+  gem.add_development_dependency 'rb-fsevent', '~> 0.9.1'
 end

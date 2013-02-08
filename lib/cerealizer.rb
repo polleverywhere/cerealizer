@@ -19,17 +19,9 @@ module Cerealizer
       self
     end
 
-    def self.key(key)
-      keys.push Key.new(key)
-    end
-
-    def self.keys
-      @keys ||= []
-    end
-
     # Call methods on the object that's being presented and create a flat 
     # hash for these mofos.
-    def serializable_hash
+    def read_keys
       self.class.keys.inject Hash.new do |hash, key|
         hash[key.name] = proxy_reader(key.name) if readable?(key.name)
         hash
@@ -37,9 +29,19 @@ module Cerealizer
     end
 
     # Update the attrs on zie model.
-    def update_attributes(attrs={})
-      attrs.each { |key, value| proxy_writer(key, value) if writeable?(key.name) }
+    def write_keys(attrs)
+      attrs.each { |key, value| proxy_writer(key, value) if writeable?(key) }
       self
+    end
+
+    # Registers a key with the class.
+    def self.key(key)
+      keys.push Key.new(key)
+    end
+
+    # Keys that are registered with the class.
+    def self.keys
+      @keys ||= []
     end
 
   private
