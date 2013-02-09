@@ -1,12 +1,60 @@
 require "cerealizer/version"
+require 'uri'
+require 'set'
+
+# A quick and dirty class for recognizing and generating URL paths.
+class PathRouter
+  PATH_DELIMITER = '/'
+  VARIABLE_REGEXP = /^\:(.+)/
+
+  attr_reader :uri
+
+  def initialize(uri)
+    @uri = URI.parse(uri)
+  end
+
+  # Return the segments out of this thing that are 
+  def recognize(uri)
+    if captures = regexp.match(URI.parse(uri).path).captures
+      Hash[variables.zip captures]
+    end
+  end
+
+  # Generate an URL based on a hash of variables
+  def generate(vars={})
+    segments.map{|s| s =~ VARIABLE_REGEXP ? vars[$1.to_sym] : s }.join(PATH_DELIMITER)
+  end
+
+  # A Set of the variables in the URL.
+  def variables
+    @variables ||= Set.new(segments.grep(VARIABLE_REGEXP){ $1 }.map(&:to_sym))
+  end
+
+private
+  # Convert the path into a Regexp that we can use to recognize shiz.
+  def regexp
+    @regexp ||= compile_regexp
+  end
+
+  # Get all of the segments in the URL.
+  def segments
+    @segments ||= uri.path.split(PATH_DELIMITER)
+  end
+
+  # Comples a regexp that's used to capture the URL and its segments.
+  def compile_regexp
+    Regexp.new("^#{segments.map{ |s| s =~ VARIABLE_REGEXP ? '(.+)' : s }.join('\/')}$")
+  end
+end
 
 module Cerealizer
   # Encapsulates information about keys.
   class Key
     attr_reader :name
 
-    def initialize(name)
+    def initialize(name, &block)
       @name = name
+      self
     end
   end
 
@@ -16,6 +64,7 @@ module Cerealizer
 
     def initialize(object, scope)
       @object, @scope = object, scope
+      # K, back to your regularly scheduled programming...
       self
     end
 

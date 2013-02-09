@@ -22,26 +22,11 @@ Want to write a HATOAS API without a bunch of stuff between your model and the s
 
 ```ruby
 class FruitSerializer < Cerealizer::Base
-  key :owner_href
-  hey :href
+  href "/users/:owner_id"
+  href "/fruits/:id"
+
   key :color
   key :private_tasting_note
-
-  def href
-    "/fruits/#{object.id}"
-  end
-
-  def href=(href)
-    _, object.id = href.split('/')
-  end
-
-  def owner_href
-    "/users/#{object.owner_id}"
-  end
-
-  def owner_href=(href)
-    _, object.owner_id = href.split('/')
-  end
 
   # Only the owner of the Fruit can change the owner key or the admin.
   def has_writeable_owner_href?
