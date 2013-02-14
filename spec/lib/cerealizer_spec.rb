@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Cerealizer do
 
   # Anonomous classes we use to test cerealizer
-  let(:cereal_klass) { Struct.new(:name, :sugar_content, :private_notes, :owner_id, :prize) }
+  let(:cereal_klass) { Struct.new(:name, :sugar_content, :private_notes, :owner_id, :prize, :id) }
   let(:user_klass) { Struct.new(:name, :role, :id) }
   let(:serializer_klass) do
     # Weird eh? Its an anonymous class. Don't want to litter the Global namespace with
@@ -22,7 +22,7 @@ describe Cerealizer do
   # We're gonna use these instances for the test cases.
   let(:brad){ user_klass.new('Brad Gessler', :admin, 1) }
   let(:joe){ user_klass.new('Joe Shmoe', :anon, 2) }
-  let(:cheerios){ cereal_klass.new('Cheerios', '1 gram', 'Tastes like cardboard', brad.id) }
+  let(:cheerios){ cereal_klass.new('Cheerios', '1 gram', 'Tastes like cardboard', brad.id, 1) }
   let(:cheerios_serializer){ serializer_klass.new(cheerios, brad) }
 
   describe "#read_keys" do
@@ -53,7 +53,10 @@ describe Cerealizer do
   describe ".href" do
     let(:serializer_klass) do
       Class.new Cerealizer::Base do
+        key :id
+
         href "/users/:owner_id"
+        href "/fruits/:id"
       end
     end
 
@@ -62,13 +65,21 @@ describe Cerealizer do
     end
 
     it "should write #owner_href key" do
-      cheerios_serializer.write_keys(:owner_href => "/users/#{joe.id}").object.should == joe.id
+      cheerios_serializer.write_keys(:owner_href => "/users/#{joe.id}").object.owner_id.should == joe.id.to_s
+    end
+
+    it "should read #href key" do
+      cheerios_serializer.read_keys[:href].should == "/fruits/#{cheerios.id}"
+    end
+
+    it "should write #href key" do
+      cheerios_serializer.write_keys(:href => "/fruits/99").object.id.should == '99'
     end
   end
 end
 
-describe PathRouter do
-  let(:href) { PathRouter.new("/users/:owner_id") }
+describe Cerealizer::PathRouter do
+  let(:href) { Cerealizer::PathRouter.new("/users/:owner_id") }
 
   it "should recognize uri" do
     href.recognize("/users/12")[:owner_id].should == '12'
