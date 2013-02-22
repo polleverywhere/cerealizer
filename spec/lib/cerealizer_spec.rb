@@ -26,8 +26,17 @@ describe Cerealizer do
       cheerios_serializer.read_keys.keys.should include(:name, :private_notes, :sugar_content)
     end
 
-    it "should serializer values" do
+    it "should serialize values" do
       cheerios_serializer.read_keys.values.should include('Cheerios', '1 gram', 'Tastes like cardboard')
+    end
+  end
+
+  describe ".read_keys" do
+    it "should serialize array of objects" do
+      array = serializer_klass.read_keys [cheerios, cheerios], brad
+      array.each do |hash|
+        hash.keys.should include(*serializer_klass.keys.map(&:name))
+      end
     end
   end
 

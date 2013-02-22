@@ -44,6 +44,11 @@ module Cerealizer
       @keys ||= []
     end
 
+    # Read the keys on each object in a collection of objects.
+    def self.read_keys(objects, user)
+      objects.map { |object| self.new(object,user).read_keys }
+    end
+
   private
     # TODO - Should the default be writable?
     def writeable?(key)
